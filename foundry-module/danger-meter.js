@@ -58,13 +58,14 @@ function analyzeCurrentCombat() {
         const actor = token.actor;
         if (!actor) return;
 
-        const isPlayer = actor.hasPlayerOwner;
+        const isPlayer = actor.type === "character";
+        const isNPC = actor.type === "npc";
         
         if (isPlayer) {
             partySize++;
             // Tenta pegar o level do jogador no sistema dnd5e
             totalPartyLevel += actor.system.details?.level || 1; 
-        } else {
+        } else if (isNPC) {
             enemyCount++;
             // Tenta pegar o CR do monstro
             totalEnemyCr += actor.system.details?.cr || 0.25;
