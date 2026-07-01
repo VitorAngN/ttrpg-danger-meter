@@ -4,25 +4,29 @@ Hooks.once("init", () => {
     console.log("🔥 TTRPG Danger Meter | Inicializando Módulo de IA Local");
 });
 
-Hooks.on("renderSceneControls", (app, html) => {
-    // Se outro módulo quebrou a lista de controles, injetamos direto no HTML usando JQuery!
-    const tokenTools = html.find('.sub-controls.active, .sub-controls[data-control="token"]');
-    
-    // Evita duplicar se renderizar duas vezes
-    if (tokenTools.find('[data-tool="analyze-danger"]').length > 0) return;
+Hooks.on("renderSceneControls", () => {
+    // O Foundry V12 removeu o jQuery (o 'html.find' quebrou).
+    // Solução definitiva: Vanilla JS (JavaScript puro) direto no corpo da página!
+    setTimeout(() => {
+        const tokenTools = document.querySelector('ol.sub-controls[data-control="token"]');
+        if (!tokenTools) return;
+        
+        if (tokenTools.querySelector('[data-tool="analyze-danger"]')) return; // Evita duplicar
 
-    const btnHTML = `
-        <li class="control-tool" data-tool="analyze-danger" title="Analisar Perigo com IA" style="color: #ff6400;">
-            <i class="fas fa-brain"></i>
-        </li>
-    `;
-    
-    tokenTools.append(btnHTML);
+        const btn = document.createElement("li");
+        btn.className = "control-tool";
+        btn.dataset.tool = "analyze-danger";
+        btn.title = "Analisar Perigo com IA";
+        btn.style.color = "#ff6400";
+        btn.style.fontWeight = "bold";
+        btn.innerHTML = '<i class="fas fa-brain"></i>';
+        
+        btn.addEventListener("click", () => {
+            analyzeCurrentCombat();
+        });
 
-    // Quando o Mestre clicar no cérebro
-    tokenTools.find('[data-tool="analyze-danger"]').click(() => {
-        analyzeCurrentCombat();
-    });
+        tokenTools.appendChild(btn);
+    }, 150); // Atraso de 150ms para garantir que o Foundry terminou de desenhar a tela
 });
 
 function analyzeCurrentCombat() {
