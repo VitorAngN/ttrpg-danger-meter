@@ -5,9 +5,20 @@ Hooks.once("init", () => {
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
-    // Adiciona um botão na barra de ferramentas do mestre
-    const tokenControls = controls.find(c => c.name === "token");
-    if (tokenControls) {
+    // Em algumas versões do Foundry V12, o formato de 'controls' mudou.
+    // Vamos garantir que achamos a aba 'token' independente do formato.
+    let tokenControls = null;
+    if (Array.isArray(controls)) {
+        tokenControls = controls.find(c => c.name === "token");
+    } else if (controls && Array.isArray(controls.controls)) {
+        tokenControls = controls.controls.find(c => c.name === "token");
+    } else if (controls) {
+        for (const key in controls) {
+            if (controls[key]?.name === "token") tokenControls = controls[key];
+        }
+    }
+
+    if (tokenControls && tokenControls.tools) {
         tokenControls.tools.push({
             name: "analyze-danger",
             title: "Analisar Perigo com IA",
