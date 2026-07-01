@@ -4,29 +4,44 @@ Hooks.once("init", () => {
     console.log("🔥 TTRPG Danger Meter | Inicializando Módulo de IA Local");
 });
 
-Hooks.on("renderSceneControls", () => {
-    // O Foundry V12 removeu o jQuery (o 'html.find' quebrou).
-    // Solução definitiva: Vanilla JS (JavaScript puro) direto no corpo da página!
-    setTimeout(() => {
-        const tokenTools = document.querySelector('ol.sub-controls[data-control="token"]');
-        if (!tokenTools) return;
-        
-        if (tokenTools.querySelector('[data-tool="analyze-danger"]')) return; // Evita duplicar
+Hooks.once("ready", () => {
+    // Esquece a barra de ferramentas! O seu Foundry tem dezenas de módulos (The Ripper, TokenMagic, etc) 
+    // que alteram a barra padrão do V12. Vamos criar nosso próprio botão Flutuante Indestrutível!
+    
+    // Evita duplicar
+    if (document.getElementById("btn-danger-meter")) return;
 
-        const btn = document.createElement("li");
-        btn.className = "control-tool";
-        btn.dataset.tool = "analyze-danger";
-        btn.title = "Analisar Perigo com IA";
-        btn.style.color = "#ff6400";
-        btn.style.fontWeight = "bold";
-        btn.innerHTML = '<i class="fas fa-brain"></i>';
-        
-        btn.addEventListener("click", () => {
-            analyzeCurrentCombat();
-        });
+    const btn = document.createElement("button");
+    btn.id = "btn-danger-meter";
+    btn.innerHTML = `<i class="fas fa-brain"></i> IA de Combate`;
+    
+    // Estilização braba pra ficar flutuando no canto inferior direito, perto do Chat
+    Object.assign(btn.style, {
+        position: "fixed",
+        bottom: "80px",
+        right: "320px", // Fica logo à esquerda da barra de chat
+        zIndex: "9999",
+        width: "140px",
+        height: "40px",
+        backgroundColor: "#ff6400",
+        color: "white",
+        border: "2px solid #222",
+        borderRadius: "8px",
+        boxShadow: "0 0 10px rgba(0,0,0,0.8)",
+        cursor: "pointer",
+        fontWeight: "bold",
+        fontSize: "14px"
+    });
+    
+    // Efeito de Hover (Brilhar ao passar o mouse)
+    btn.onmouseenter = () => btn.style.backgroundColor = "#ff8533";
+    btn.onmouseleave = () => btn.style.backgroundColor = "#ff6400";
 
-        tokenTools.appendChild(btn);
-    }, 150); // Atraso de 150ms para garantir que o Foundry terminou de desenhar a tela
+    btn.addEventListener("click", () => {
+        analyzeCurrentCombat();
+    });
+
+    document.body.appendChild(btn);
 });
 
 function analyzeCurrentCombat() {
