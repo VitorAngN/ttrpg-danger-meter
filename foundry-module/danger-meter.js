@@ -4,30 +4,25 @@ Hooks.once("init", () => {
     console.log("🔥 TTRPG Danger Meter | Inicializando Módulo de IA Local");
 });
 
-Hooks.on("getSceneControlButtons", (controls) => {
-    // Em algumas versões do Foundry V12, o formato de 'controls' mudou.
-    // Vamos garantir que achamos a aba 'token' independente do formato.
-    let tokenControls = null;
-    if (Array.isArray(controls)) {
-        tokenControls = controls.find(c => c.name === "token");
-    } else if (controls && Array.isArray(controls.controls)) {
-        tokenControls = controls.controls.find(c => c.name === "token");
-    } else if (controls) {
-        for (const key in controls) {
-            if (controls[key]?.name === "token") tokenControls = controls[key];
-        }
-    }
+Hooks.on("renderSceneControls", (app, html) => {
+    // Se outro módulo quebrou a lista de controles, injetamos direto no HTML usando JQuery!
+    const tokenTools = html.find('.sub-controls.active, .sub-controls[data-control="token"]');
+    
+    // Evita duplicar se renderizar duas vezes
+    if (tokenTools.find('[data-tool="analyze-danger"]').length > 0) return;
 
-    if (tokenControls && tokenControls.tools) {
-        tokenControls.tools.push({
-            name: "analyze-danger",
-            title: "Analisar Perigo com IA",
-            icon: "fas fa-brain",
-            button: true,
-            visible: true,
-            onClick: () => analyzeCurrentCombat()
-        });
-    }
+    const btnHTML = `
+        <li class="control-tool" data-tool="analyze-danger" title="Analisar Perigo com IA" style="color: #ff6400;">
+            <i class="fas fa-brain"></i>
+        </li>
+    `;
+    
+    tokenTools.append(btnHTML);
+
+    // Quando o Mestre clicar no cérebro
+    tokenTools.find('[data-tool="analyze-danger"]').click(() => {
+        analyzeCurrentCombat();
+    });
 });
 
 function analyzeCurrentCombat() {
